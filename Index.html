@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Greeter DApp</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f7f7f7; }
+    #container { max-width: 500px; margin: auto; background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    input, button { padding: 0.6rem; font-size: 1rem; width: 100%; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h2>🧾 Greeter on Sepolia</h2>
+    <p><strong>Current Message:</strong> <span id="currentMessage">Loading...</span></p>
+
+    <input type="text" id="newMessage" placeholder="Enter new message" />
+    <button onclick="updateMessage()">Set Message</button>
+  </div>
+
+  <script>
+    const contractAddress = "0xF9dD5Bf19095d75922B7E4F39731e63abE736aBC";
+    const abi = [
+      "function message() public view returns (string)",
+      "function setMessage(string memory _newMessage) public"
+    ];
+
+    let provider, signer, contract;
+
+    async function init() {
+      if (window.ethereum) {
+        provider = new ethers.BrowserProvider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        signer = await provider.getSigner();
+        contract = new ethers.Contract(contractAddress, abi, signer);
+        loadMessage();
+      } else {
+        alert("Please install MetaMask!");
+      }
+    }
+
+    async function loadMessage() {
+      const msg = await contract.message();
+      document.getElementById("currentMessage").innerText = msg;
+    }
+
+    async function updateMessage() {
+      const input = document.getElementById("newMessage").value;
+      if (!input) return alert("Please enter a message.");
+      const tx = await contract.setMessage(input);
+      await tx.wait();
+      alert("Message updated!");
+      loadMessage();
+    }
+
+    init();
+  </script>
+</body>
+</html>
